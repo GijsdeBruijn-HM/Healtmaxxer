@@ -1,1 +1,554 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Healtmaxxer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#F7F3EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;justify-content:center}
+.app{background:#F7F3EE;width:100%;max-width:430px;min-height:100vh;padding-bottom:72px}
+.screen{display:none;padding:24px 16px 16px}
+.screen.actief{display:block}
+.paginatitel{font-size:22px;font-weight:500;color:#2C2A25}
+.datebadge{font-size:12px;color:#888780;background:#EDE8E0;border-radius:20px;padding:4px 10px;margin-top:4px;display:inline-block}
+.herstel-card{background:#EDE8E0;border-radius:16px;padding:16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.herstel-ring{width:56px;height:56px;border-radius:50%;background:#D6CFC3;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:500;color:#2C2A25;flex-shrink:0}
+.herstel-advies{background:#fff;border:0.5px solid #D3D1C7;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#5F5E5A;line-height:1.5}
+.streak-bar{display:flex;align-items:center;gap:8px;background:#fff;border:0.5px solid #D3D1C7;border-radius:12px;padding:10px 14px;margin-bottom:14px}
+.streak-num{font-size:20px;font-weight:500;color:#2C2A25}
+.streak-label{font-size:12px;color:#888780}
+.week-mini{display:flex;gap:4px;margin-left:auto}
+.week-dot{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.kaart{background:#fff;border:0.5px solid #D3D1C7;border-radius:14px;padding:14px}
+.k-label{font-size:11px;color:#888780;margin-bottom:6px}
+.k-val{font-size:22px;font-weight:500;color:#2C2A25}
+.k-unit{font-size:12px;font-weight:400;color:#B4B2A9}
+.k-sub{font-size:11px;color:#B4B2A9;margin-top:3px}
+.k-prog{height:3px;background:#F1EFE8;border-radius:2px;margin-top:6px}
+.k-prog-fill{height:3px;border-radius:2px;background:#639922}
+.sectie-label{font-size:11px;font-weight:500;color:#888780;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px;margin-top:4px}
+.log-kaart{background:#fff;border:0.5px solid #D3D1C7;border-radius:14px;padding:14px;margin-bottom:10px}
+.log-row{display:flex;justify-content:space-between;align-items:center}
+.log-naam{font-size:14px;color:#2C2A25;font-weight:500}
+.log-tijd{font-size:12px;color:#888780}
+.log-detail{font-size:12px;color:#B4B2A9;margin-top:3px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-groen{background:#639922}.dot-grijs{background:#D3D1C7}
+.invulbtn{width:100%;background:#2C2A25;color:#F7F3EE;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:500;margin-top:6px;cursor:pointer}
+.navbar{display:flex;justify-content:space-around;align-items:center;background:#fff;border-top:0.5px solid #D3D1C7;padding:10px 0 8px;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:10}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:2px 6px}
+.nav-label{font-size:9px;color:#888780}
+.nav-label.actief{color:#2C2A25;font-weight:500}
+.blok{background:#fff;border:0.5px solid #D3D1C7;border-radius:14px;padding:16px;margin-bottom:14px}
+.blok-sub{font-size:11px;color:#888780;margin-bottom:14px}
+.form-sectie{background:#fff;border:0.5px solid #D3D1C7;border-radius:14px;padding:16px;margin-bottom:12px}
+.form-label{font-size:12px;color:#888780;margin-bottom:8px;font-weight:500}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:7px 14px;border-radius:20px;border:0.5px solid #D3D1C7;background:#F7F3EE;font-size:13px;color:#5F5E5A;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.chip.geselecteerd{background:#2C2A25;color:#F7F3EE;border-color:#2C2A25}
+.veld{background:#F7F3EE;border:0.5px solid #D3D1C7;border-radius:10px;padding:10px 14px;font-size:14px;color:#2C2A25;width:100%;outline:none}
+.opslaan-btn{width:100%;background:#2C2A25;color:#F7F3EE;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:500;margin-top:4px;cursor:pointer}
+.success-msg{background:#EAF3DE;border-radius:12px;padding:12px 16px;font-size:13px;color:#3B6D11;text-align:center;margin-bottom:12px;display:none}
+.slider-row{display:flex;align-items:center;gap:8px}
+.slider-row input[type=range]{flex:1;accent-color:#2C2A25}
+.slider-val{font-size:15px;font-weight:500;color:#2C2A25;min-width:32px;text-align:right}
+.ai-fab{position:fixed;bottom:82px;right:calc(50% - 215px + 12px);width:46px;height:46px;border-radius:50%;background:#2C2A25;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+@media(max-width:430px){.ai-fab{right:12px}}
+.chat-wrap{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);width:calc(100% - 24px);max-width:406px;z-index:50}
+.chat-box{background:#fff;border:0.5px solid #D3D1C7;border-radius:16px;overflow:hidden;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.12)}
+.chat-box.open{display:block}
+.chat-header{background:#2C2A25;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.chat-htitel{font-size:14px;font-weight:500;color:#F7F3EE}
+.chat-hsub{font-size:11px;color:#9a9893}
+.chat-close{background:none;border:none;color:#9a9893;font-size:20px;cursor:pointer;line-height:1}
+.chat-msgs{height:160px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:84%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.5}
+.msg.ai{background:#F7F3EE;color:#2C2A25;align-self:flex-start;border-bottom-left-radius:4px}
+.msg.user{background:#2C2A25;color:#F7F3EE;align-self:flex-end;border-bottom-right-radius:4px}
+.msg.laden{background:#F7F3EE;color:#888780;align-self:flex-start;font-style:italic}
+.sug-row{display:flex;flex-wrap:wrap;gap:5px;padding:8px 12px;border-top:0.5px solid #F1EFE8}
+.sug{background:#F7F3EE;border:0.5px solid #D3D1C7;border-radius:20px;padding:5px 10px;font-size:11px;color:#5F5E5A;cursor:pointer}
+.chat-input-row{display:flex;gap:8px;padding:8px 12px;border-top:0.5px solid #F1EFE8}
+.chat-input{flex:1;background:#F7F3EE;border:0.5px solid #D3D1C7;border-radius:20px;padding:7px 14px;font-size:13px;color:#2C2A25;outline:none}
+.chat-send{background:#2C2A25;border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(44,42,37,0.45);z-index:100;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:430px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-titel{font-size:16px;font-weight:500;color:#2C2A25}
+.modal-sluit{background:none;border:none;font-size:22px;color:#888780;cursor:pointer;line-height:1}
+.modal-rij{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid #F1EFE8;font-size:13px}
+.modal-rij:last-of-type{border-bottom:none}
+.modal-key{color:#888780}
+.modal-val{color:#2C2A25;font-weight:500;text-align:right;max-width:65%}
+.modal-notitie{background:#F7F3EE;border-radius:10px;padding:10px 12px;font-size:13px;color:#5F5E5A;margin-top:10px;line-height:1.5}
+.modal-ai-btn{width:100%;background:#F7F3EE;border:0.5px solid #D3D1C7;border-radius:10px;padding:10px;font-size:13px;color:#5F5E5A;cursor:pointer;margin-top:12px}
+.profiel-kaart{background:#fff;border:0.5px solid #D3D1C7;border-radius:14px;padding:16px;margin-bottom:12px}
+.profiel-rij{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid #F1EFE8}
+.profiel-rij:last-child{border-bottom:none}
+.profiel-key{font-size:13px;color:#888780}
+.tag{display:inline-block;background:#EDE8E0;color:#5F5E5A;border-radius:20px;padding:3px 10px;font-size:11px;margin-right:4px}
+.doel-rij{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid #F1EFE8}
+.doel-rij:last-child{border-bottom:none}
+.doel-key{font-size:13px;color:#888780}
+.doel-input{background:#F7F3EE;border:0.5px solid #D3D1C7;border-radius:8px;padding:6px 10px;font-size:13px;color:#2C2A25;width:80px;text-align:right;outline:none}
+.gesch-dag{background:#fff;border:0.5px solid #D3D1C7;border-radius:14px;padding:14px;margin-bottom:10px}
+.gesch-datum{font-size:12px;color:#888780;margin-bottom:8px;font-weight:500}
+.gesch-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gesch-item{font-size:12px;color:#5F5E5A}
+.gesch-item span{font-weight:500;color:#2C2A25}
+</style>
+</head>
+<body>
+<div class="app" id="app">
 
+<div class="screen actief" id="s-home">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+    <div>
+      <div style="font-size:13px;color:#888780;margin-bottom:2px" id="begroeting">Goedemorgen, Gijs</div>
+      <div class="paginatitel">Vandaag</div>
+      <div class="datebadge" id="datum-badge"></div>
+    </div>
+    <div onclick="nav('profiel')" style="width:36px;height:36px;border-radius:50%;background:#EDE8E0;border:0.5px solid #D3D1C7;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="#888780" stroke-width="1.2"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#888780" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+
+  <div class="streak-bar">
+    <div>
+      <div class="streak-num">🔥 <span id="streak-num">0</span></div>
+      <div class="streak-label">dagen op rij bijgehouden</div>
+    </div>
+    <div class="week-mini" id="week-mini"></div>
+  </div>
+
+  <div class="herstel-card">
+    <div>
+      <div style="font-size:11px;color:#888780;margin-bottom:4px">Herstel vandaag</div>
+      <div style="font-size:32px;font-weight:500;color:#2C2A25;line-height:1">—</div>
+      <div style="font-size:12px;color:#888780;margin-top:4px">Fitbit nog niet gekoppeld</div>
+    </div>
+    <div class="herstel-ring">—</div>
+  </div>
+
+  <div class="herstel-advies">💡 <span id="advies-tekst" style="font-style:italic;color:#B4B2A9">Hersteladvies laden...</span></div>
+
+  <div class="grid2">
+    <div class="kaart"><div class="k-label">Slaap</div><div class="k-val" id="h-slaap">—</div><div class="k-sub" id="h-slaap-sub">Vul slaaptijden in</div></div>
+    <div class="kaart"><div class="k-label">Energie</div><div class="k-val" id="h-energie">—</div><div class="k-sub" id="h-energie-sub">Nog invullen</div></div>
+    <div class="kaart"><div class="k-label">Stappen</div><div class="k-val" id="h-stappen">—</div><div class="k-sub" id="h-stappen-sub">Fitbit koppelen</div><div class="k-prog"><div class="k-prog-fill" id="prog-stappen" style="width:0%"></div></div></div>
+    <div class="kaart"><div class="k-label">Water</div><div class="k-val" id="h-water">—</div><div class="k-sub" id="h-water-sub">Nog invullen</div><div class="k-prog"><div class="k-prog-fill" id="prog-water" style="width:0%"></div></div></div>
+  </div>
+
+  <div class="sectie-label">Voeding vandaag</div>
+  <div class="log-kaart"><div class="log-row"><div class="log-naam">Ontbijt</div><div style="display:flex;align-items:center;gap:6px"><div class="log-tijd" id="lt-ontbijt">—</div><div class="dot dot-grijs" id="ld-ontbijt"></div></div></div><div class="log-detail" id="ldet-ontbijt">Nog niet gelogd</div></div>
+  <div class="log-kaart"><div class="log-row"><div class="log-naam">Lunch</div><div style="display:flex;align-items:center;gap:6px"><div class="log-tijd" id="lt-lunch">—</div><div class="dot dot-grijs" id="ld-lunch"></div></div></div><div class="log-detail" id="ldet-lunch">Nog niet gelogd</div></div>
+  <div class="log-kaart"><div class="log-row"><div class="log-naam">Avondeten</div><div style="display:flex;align-items:center;gap:6px"><div class="log-tijd" id="lt-avond">—</div><div class="dot dot-grijs" id="ld-avond"></div></div></div><div class="log-detail" id="ldet-avond">Nog niet gelogd</div></div>
+  <button class="invulbtn" onclick="nav('invoer')">+ Invullen ↗</button>
+</div>
+
+<div class="screen" id="s-invoer">
+  <div style="margin-bottom:20px"><div class="paginatitel">Invullen</div><div class="datebadge">vandaag</div></div>
+  <div id="success-banner" class="success-msg">Opgeslagen! 🎉</div>
+
+  <div class="form-sectie">
+    <div class="form-label">Slaaptijden</div>
+    <div style="display:flex;gap:12px">
+      <div style="flex:1"><div style="font-size:12px;color:#5F5E5A;margin-bottom:5px">Naar bed om</div><input type="time" id="naar-bed" class="veld"></div>
+      <div style="flex:1"><div style="font-size:12px;color:#5F5E5A;margin-bottom:5px">Wakker om</div><input type="time" id="wakker-om" class="veld"></div>
+    </div>
+  </div>
+
+  <div class="form-sectie">
+    <div class="form-label">Maaltijd</div>
+    <div class="chip-row"><div class="chip" onclick="kiesChip(this,'maaltijd')">Ontbijt</div><div class="chip" onclick="kiesChip(this,'maaltijd')">Lunch</div><div class="chip" onclick="kiesChip(this,'maaltijd')">Avondeten</div></div>
+  </div>
+  <div class="form-sectie">
+    <div class="form-label">Tijdstip</div>
+    <input type="time" id="tijdstip" class="veld">
+  </div>
+  <div class="form-sectie">
+    <div class="form-label">Wat at je?</div>
+    <input type="text" id="voeding-omschrijving" placeholder="bijv. yoghurt met fruit en granola" class="veld" style="margin-bottom:10px">
+    <div class="form-label">Categorie</div>
+    <div class="chip-row" style="margin-bottom:10px"><div class="chip" onclick="kiesChip(this,'categorie')">Koolhydraten</div><div class="chip" onclick="kiesChip(this,'categorie')">Eiwit</div><div class="chip" onclick="kiesChip(this,'categorie')">Vet</div><div class="chip" onclick="kiesChip(this,'categorie')">Gemengd</div></div>
+    <div class="form-label">Grootte</div>
+    <div class="chip-row"><div class="chip" onclick="kiesChip(this,'grootte')">Klein</div><div class="chip" onclick="kiesChip(this,'grootte')">Middel</div><div class="chip" onclick="kiesChip(this,'grootte')">Groot</div></div>
+  </div>
+  <div class="form-sectie">
+    <div class="form-label">Snacks (einde dag)</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:13px;color:#5F5E5A">Aantal snacks</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div onclick="snackAantal(-1)" style="width:28px;height:28px;border-radius:50%;border:0.5px solid #D3D1C7;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#2C2A25">−</div>
+        <span id="snack-aantal" style="font-size:16px;font-weight:500;color:#2C2A25;min-width:16px;text-align:center">0</span>
+        <div onclick="snackAantal(1)" style="width:28px;height:28px;border-radius:50%;border:0.5px solid #D3D1C7;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#2C2A25">+</div>
+      </div>
+    </div>
+    <div class="form-label">Laatste maaltijd / snack om</div>
+    <input type="time" id="laatste-maaltijd" class="veld" style="margin-bottom:10px">
+    <div class="form-label">Notitie</div>
+    <input type="text" id="voeding-notitie" placeholder="bijv. trek gehad na training" class="veld">
+  </div>
+  <div class="form-sectie">
+    <div class="form-label">Scherm uit om</div>
+    <input type="time" id="scherm-uit" class="veld" style="margin-bottom:10px">
+    <div class="form-label">Schermtijd totaal (uur)</div>
+    <div class="slider-row" style="margin-bottom:8px"><span style="font-size:12px;color:#888780">0</span><input type="range" min="0" max="12" value="0" step="1" id="scherm-totaal" oninput="document.getElementById('st-tot').textContent=this.value+'u'"><span style="font-size:12px;color:#888780">12</span><span class="slider-val" id="st-tot">0u</span></div>
+    <div class="form-label">Social / YouTube (uur)</div>
+    <div class="slider-row" style="margin-bottom:10px"><span style="font-size:12px;color:#888780">0</span><input type="range" min="0" max="12" value="0" step="1" id="scherm-social" oninput="document.getElementById('st-soc').textContent=this.value+'u'"><span style="font-size:12px;color:#888780">12</span><span class="slider-val" id="st-soc">0u</span></div>
+    <div class="form-label">Notitie</div>
+    <input type="text" id="scherm-notitie" placeholder="bijv. lang op YouTube voor het slapen" class="veld">
+  </div>
+  <div class="form-sectie">
+    <div class="form-label">Energie per dagdeel</div>
+    <div style="margin-bottom:10px"><div style="font-size:12px;color:#5F5E5A;margin-bottom:5px">Ochtend</div><div class="slider-row"><span style="font-size:12px;color:#888780">1</span><input type="range" min="1" max="10" value="5" step="1" id="e-och" oninput="document.getElementById('ev-och').textContent=this.value"><span style="font-size:12px;color:#888780">10</span><span class="slider-val" id="ev-och">5</span></div></div>
+    <div style="margin-bottom:10px"><div style="font-size:12px;color:#5F5E5A;margin-bottom:5px">Middag</div><div class="slider-row"><span style="font-size:12px;color:#888780">1</span><input type="range" min="1" max="10" value="5" step="1" id="e-mid" oninput="document.getElementById('ev-mid').textContent=this.value"><span style="font-size:12px;color:#888780">10</span><span class="slider-val" id="ev-mid">5</span></div></div>
+    <div><div style="font-size:12px;color:#5F5E5A;margin-bottom:5px">Avond</div><div class="slider-row"><span style="font-size:12px;color:#888780">1</span><input type="range" min="1" max="10" value="5" step="1" id="e-av" oninput="document.getElementById('ev-av').textContent=this.value"><span style="font-size:12px;color:#888780">10</span><span class="slider-val" id="ev-av">5</span></div></div>
+    <div style="margin-top:10px"><div class="form-label">Notitie</div><input type="text" id="energie-notitie" placeholder="bijv. dipje na de lunch" class="veld"></div>
+  </div>
+  <div class="form-sectie">
+    <div class="form-label">Stemming per dagdeel</div>
+    <div style="margin-bottom:10px"><div style="font-size:12px;color:#5F5E5A;margin-bottom:5px">Ochtend</div><div class="slider-row"><span style="font-size:12px;color:#888780">1</span><input type="range" min="1" max="10" value="5" step="1" id="s-och" oninput="document.getElementById('sv-och').textContent=this.value"><span style="font-size:12px;color:#888780">10</span><span class="slider-val" id="sv-och">5</span></div></div>
+    <div style="margin-bottom:10px"><div style="font-size:12px;color:#5F5E5A;margin-bottom:5px">Middag</div><div class="slider-row"><span style="font-size:12px;color:#888780">1</span><input type="range" min="1" max="10" value="5" step="1" id="s-mid" oninput="document.getElementById('sv-mid').textContent=this.value"><span style="font-size:12px;color:#888780">10</span><span class="slider-val" id="sv-mid">5</span></div></div>
+    <div><div style="font-size:12px;color:#5F5E5A;margin-bottom:5px">Avond</div><div class="slider-row"><span style="font-size:12px;color:#888780">1</span><input type="range" min="1" max="10" value="5" step="1" id="s-av" oninput="document.getElementById('sv-av').textContent=this.value"><span style="font-size:12px;color:#888780">10</span><span class="slider-val" id="sv-av">5</span></div></div>
+    <div style="margin-top:10px"><div class="form-label">Notitie</div><input type="text" id="stemming-notitie" placeholder="bijv. gespannen voor training" class="veld"></div>
+  </div>
+  <div class="form-sectie">
+    <div class="form-label">Water (liters)</div>
+    <div class="slider-row"><span style="font-size:12px;color:#888780">0</span><input type="range" min="0" max="4" value="0" step="0.25" id="water-slider" oninput="document.getElementById('water-val').textContent=parseFloat(this.value).toFixed(2)+'L'"><span style="font-size:12px;color:#888780">4L</span><span class="slider-val" id="water-val">0L</span></div>
+  </div>
+  <button class="opslaan-btn" onclick="slaanOp()">Opslaan</button>
+</div>
+
+<div class="screen" id="s-patronen">
+  <div style="margin-bottom:16px"><div class="paginatitel">Patronen</div><div class="datebadge">afgelopen 7 dagen</div></div>
+  <div class="blok">
+    <div style="font-size:14px;font-weight:500;color:#2C2A25;margin-bottom:2px">Weekoverzicht</div>
+    <div class="blok-sub">Tik op een blokje voor details</div>
+    <div id="heatmap" style="overflow-x:auto"></div>
+    <div style="display:flex;align-items:center;gap:4px;margin-top:10px">
+      <span style="font-size:11px;color:#888780">1</span>
+      <div style="display:flex;gap:2px" id="legenda"></div>
+      <span style="font-size:11px;color:#888780">10</span>
+    </div>
+  </div>
+  <div class="blok">
+    <div style="font-size:14px;font-weight:500;color:#2C2A25;margin-bottom:2px">AI-inzichten</div>
+    <div class="blok-sub">Automatisch gegenereerd op basis van jouw data</div>
+    <div id="inzichten-inhoud" style="display:flex;flex-direction:column;gap:10px">
+      <div style="background:#EDE8E0;border-radius:10px;padding:12px;font-size:13px;color:#5F5E5A;text-align:center;font-style:italic">Inzichten laden...</div>
+    </div>
+    <button onclick="laadInzichten(true)" style="width:100%;background:#F7F3EE;border:0.5px solid #D3D1C7;border-radius:10px;padding:10px;font-size:13px;color:#5F5E5A;cursor:pointer;margin-top:12px">↻ Vernieuwen</button>
+  </div>
+</div>
+
+<div class="screen" id="s-geschiedenis">
+  <div style="margin-bottom:16px"><div class="paginatitel">Geschiedenis</div></div>
+  <div id="gesch-lijst"></div>
+</div>
+
+<div class="screen" id="s-profiel">
+  <div style="margin-bottom:16px"><div class="paginatitel">Profiel</div></div>
+  <div class="profiel-kaart">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="width:48px;height:48px;border-radius:50%;background:#EDE8E0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;color:#2C2A25">GdB</div>
+      <div><div style="font-size:16px;font-weight:500;color:#2C2A25">Gijs de Bruijn</div><div style="font-size:12px;color:#888780">16 jaar · 1,80m · 65kg</div></div>
+    </div>
+    <div class="profiel-rij"><div class="profiel-key">Sport</div><div><span class="tag">Turnen</span><span class="tag">Hardlopen</span></div></div>
+    <div class="profiel-rij"><div class="profiel-key">Fitbit</div><div style="display:flex;align-items:center;gap:6px"><div class="dot dot-grijs"></div><span style="font-size:13px;color:#888780">Nog niet gekoppeld</span></div></div>
+    <div class="profiel-rij"><div class="profiel-key">Versie</div><span style="font-size:13px;color:#B4B2A9">v0.5</span></div>
+  </div>
+
+  <div class="profiel-kaart">
+    <div style="font-size:14px;font-weight:500;color:#2C2A25;margin-bottom:4px">Doelen</div>
+    <div style="font-size:11px;color:#888780;margin-bottom:12px">Pas aan wat voor jou werkt</div>
+    <div class="doel-rij"><span class="doel-key">Slaap doel</span><div style="display:flex;align-items:center;gap:6px"><input type="number" id="doel-slaap" class="doel-input" value="8" min="4" max="12"><span style="font-size:12px;color:#888780">uur</span></div></div>
+    <div class="doel-rij"><span class="doel-key">Water doel</span><div style="display:flex;align-items:center;gap:6px"><input type="number" id="doel-water" class="doel-input" value="2.5" min="0.5" max="5" step="0.25"><span style="font-size:12px;color:#888780">liter</span></div></div>
+    <div class="doel-rij"><span class="doel-key">Stappen doel</span><div style="display:flex;align-items:center;gap:6px"><input type="number" id="doel-stappen" class="doel-input" value="10000" min="1000" max="30000" step="500"><span style="font-size:12px;color:#888780">stappen</span></div></div>
+    <button onclick="slaDoelen()" style="width:100%;background:#2C2A25;color:#F7F3EE;border:none;border-radius:10px;padding:10px;font-size:13px;cursor:pointer;margin-top:14px">Doelen opslaan</button>
+    <div id="doel-success" style="font-size:12px;color:#3B6D11;text-align:center;margin-top:8px;display:none">Opgeslagen!</div>
+  </div>
+
+  <div class="profiel-kaart">
+    <div style="font-size:14px;font-weight:500;color:#2C2A25;margin-bottom:12px">Notificaties</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:13px;color:#2C2A25">Herinnering invullen</div><div style="font-size:11px;color:#888780">Elke avond om 21:00</div></div>
+      <div id="notif-toggle" onclick="toggleNotif()" style="width:44px;height:24px;border-radius:12px;background:#D3D1C7;cursor:pointer;position:relative;transition:background 0.2s">
+        <div id="notif-knop" style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="navbar">
+  <div class="nav-item" onclick="nav('home')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.5" fill="#2C2A25"/><rect x="11" y="3" width="6" height="6" rx="1.5" fill="#D3D1C7"/><rect x="3" y="11" width="6" height="6" rx="1.5" fill="#D3D1C7"/><rect x="11" y="11" width="6" height="6" rx="1.5" fill="#D3D1C7"/></svg><div class="nav-label actief" id="nl-home">Vandaag</div></div>
+  <div class="nav-item" onclick="nav('invoer')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#D3D1C7" stroke-width="1.5"/><path d="M10 7v6M7 10h6" stroke="#D3D1C7" stroke-width="1.5" stroke-linecap="round"/></svg><div class="nav-label" id="nl-invoer">Invullen</div></div>
+  <div class="nav-item" onclick="nav('patronen')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M3 14 Q5 8 8 10 Q11 12 13 6 Q15 2 17 6" stroke="#D3D1C7" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg><div class="nav-label" id="nl-patronen">Patronen</div></div>
+  <div class="nav-item" onclick="nav('geschiedenis')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#D3D1C7" stroke-width="1.5"/><path d="M10 7v3l2 2" stroke="#D3D1C7" stroke-width="1.5" stroke-linecap="round"/></svg><div class="nav-label" id="nl-geschiedenis">Historie</div></div>
+  <div class="nav-item" onclick="nav('profiel')"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="8" r="3" stroke="#D3D1C7" stroke-width="1.5"/><path d="M4 17c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#D3D1C7" stroke-width="1.5" stroke-linecap="round"/></svg><div class="nav-label" id="nl-profiel">Profiel</div></div>
+</div>
+</div>
+
+<button class="ai-fab" onclick="toggleChat()">
+  <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="9" r="4" fill="#F7F3EE"/><circle cx="7" cy="8" r="1.2" fill="#2C2A25"/><circle cx="11" cy="8" r="1.2" fill="#2C2A25"/><circle cx="15" cy="8" r="1.2" fill="#2C2A25"/><path d="M4 14c0-3.3 3.1-6 7-6s7 2.7 7 6v1a2 2 0 0 1-2 2H9l-3 2v-2H6a2 2 0 0 1-2-2v-1z" fill="#F7F3EE"/></svg>
+</button>
+
+<div class="chat-wrap">
+  <div class="chat-box" id="chat-box">
+    <div class="chat-header">
+      <div><div class="chat-htitel">Gezondheidsassistent</div><div class="chat-hsub">Stel een vraag over jouw data</div></div>
+      <button class="chat-close" onclick="toggleChat()">×</button>
+    </div>
+    <div class="chat-msgs" id="chat-msgs"><div class="msg ai">Hey Gijs! Tik op een heatmap-blokje of stel me een vraag.</div></div>
+    <div class="sug-row">
+      <div class="sug" onclick="stelVraag('Is er een verband tussen mijn slaap en energie?')">Slaap vs energie?</div>
+      <div class="sug" onclick="stelVraag('Wanneer at ik te laat deze week?')">Te laat gegeten?</div>
+      <div class="sug" onclick="stelVraag('Hoe is mijn week gegaan?')">Week samenvatten</div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" placeholder="Stel een vraag..." onkeydown="if(event.key==='Enter')verstuur()">
+      <button class="chat-send" onclick="verstuur()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="#F7F3EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="sluitModal(event)">
+  <div class="modal" id="modal-inhoud"></div>
+</div>
+
+<script>
+var kleuren=['#C0392B','#D9534F','#E8744A','#F0997B','#F5C842','#EFD048','#A8C94A','#7DBF3A','#4CAF50','#27AE60'];
+function skl(v){return kleuren[Math.min(Math.max(Math.round(v),1),10)-1]}
+function tkl(v){return v<=4?'#7B1A1A':v<=6?'#4A3A00':'#174019'}
+
+var dagNamen=['ma','di','wo','do','vr','za','zo'];
+var metingenNamen=['Slaap','Energie','Stemming','Voeding','Water','Schermtijd'];
+var demoData=[[8,6,7,4,8,9,7],[8,5,7,3,8,9,7],[7,6,6,4,8,8,7],[7,5,6,4,7,8,6],[6,4,7,3,8,7,6],[6,7,5,8,6,4,5]];
+var demoNotities=[
+  ['7u48 · HRV 62ms · naar bed 22:30 · wakker 06:18','6u10 · HRV 48ms · onrustig · naar bed 00:15 · wakker 06:25','7u02 · HRV 55ms · naar bed 23:00 · wakker 06:02','5u17 · HRV 41ms · naar bed 01:30 · wakker 06:47','8u24 · HRV 67ms · naar bed 22:00 · wakker 06:24','8u40 · HRV 70ms · naar bed 22:15 · wakker 06:55','7u28 · HRV 60ms'],
+  ['Och: 8 · Mid: 7 · Av: 8','Och: 5 · Mid: 4 · Av: 6 · dipje na lunch','Och: 7 · Mid: 7 · Av: 7','Och: 3 · Mid: 3 · Av: 4 · hele dag moe','Och: 8 · Mid: 8 · Av: 9','Och: 9 · Mid: 9 · Av: 9','Och: 7 · Mid: 7 · Av: 7'],
+  ['Och: 7 · Mid: 7 · Av: 7','Och: 5 · Mid: 6 · Av: 6','Och: 6 · Mid: 6 · Av: 7','Och: 4 · Mid: 3 · Av: 4','Och: 8 · Mid: 8 · Av: 9','Och: 8 · Mid: 8 · Av: 8','Och: 7 · Mid: 7 · Av: 7'],
+  ['Ontbijt 07:30 yoghurt · Lunch 12:45 kip+rijst · Avond 18:00 pasta · laatste maaltijd 18:00','Ontbijt 08:00 brood · Avond 19:30 pizza · snack 22:15','Ontbijt 07:45 havermout · Lunch 12:30 salade · Avond 18:30 vis','Ontbijt 09:00 croissant · Avond 20:45 patat · laatste maaltijd 21:30','Ontbijt 07:30 eieren · Lunch 12:00 kip · Avond 18:00 rijst','Ontbijt 08:30 pannenkoeken · Avond 19:00 steak','Ontbijt 08:00 yoghurt · Lunch 13:00 pasta · Avond 18:30 soep'],
+  ['1.5L','1.0L · weinig gedronken','1.75L','0.75L · bijna niks','2.0L','1.75L','1.5L'],
+  ['Totaal 5u · social 2u · scherm uit 22:30','Totaal 7u · social 4u · YouTube tot laat · scherm uit 23:45','Totaal 4u · social 1u · scherm uit 22:00','Totaal 8u · social 5u · scherm uit 00:30','Totaal 3u · social 1u · scherm uit 21:30','Totaal 6u · social 3u · scherm uit 23:00','Totaal 5u · social 2u · scherm uit 22:15']
+];
+
+var opgeslagen=JSON.parse(localStorage.getItem('hm-data')||'{}');
+var doelen=JSON.parse(localStorage.getItem('hm-doelen')||'{"slaap":8,"water":2.5,"stappen":10000}');
+var notifAan=localStorage.getItem('hm-notif')==='true';
+var snacks=0;
+
+function laadDoelen(){
+  document.getElementById('doel-slaap').value=doelen.slaap||8;
+  document.getElementById('doel-water').value=doelen.water||2.5;
+  document.getElementById('doel-stappen').value=doelen.stappen||10000;
+  if(notifAan){document.getElementById('notif-toggle').style.background='#639922';document.getElementById('notif-knop').style.left='22px'}
+}
+
+function slaDoelen(){
+  doelen.slaap=parseFloat(document.getElementById('doel-slaap').value);
+  doelen.water=parseFloat(document.getElementById('doel-water').value);
+  doelen.stappen=parseInt(document.getElementById('doel-stappen').value);
+  localStorage.setItem('hm-doelen',JSON.stringify(doelen));
+  var s=document.getElementById('doel-success');s.style.display='block';setTimeout(function(){s.style.display='none'},1500);
+  updateHomepage();
+}
+
+function toggleNotif(){
+  notifAan=!notifAan;
+  localStorage.setItem('hm-notif',notifAan);
+  var t=document.getElementById('notif-toggle'),k=document.getElementById('notif-knop');
+  if(notifAan){t.style.background='#639922';k.style.left='22px';if('Notification' in window)Notification.requestPermission();agendeerNotif();}
+  else{t.style.background='#D3D1C7';k.style.left='2px'}
+}
+
+function agendeerNotif(){
+  if(!notifAan||!('Notification' in window)||Notification.permission!=='granted')return;
+  var nu=new Date(),doel=new Date();doel.setHours(21,0,0,0);
+  if(doel<=nu)doel.setDate(doel.getDate()+1);
+  setTimeout(function(){new Notification('Healtmaxxer',{body:'Heb je al ingevuld vandaag? 💪'});agendeerNotif()},doel-nu);
+}
+
+function berekenStreak(){
+  var streak=0,vandaag=new Date();
+  for(var i=0;i<30;i++){var d=new Date(vandaag);d.setDate(d.getDate()-i);var k=d.toISOString().split('T')[0];if(opgeslagen[k])streak++;else if(i>0)break;}
+  return streak;
+}
+
+function bouwWeekMini(){
+  var el=document.getElementById('week-mini');if(!el)return;el.innerHTML='';
+  var vandaag=new Date();
+  for(var i=6;i>=0;i--){
+    var d=new Date(vandaag);d.setDate(d.getDate()-i);
+    var key=d.toISOString().split('T')[0];
+    var heeft=!!opgeslagen[key];
+    var dag=['zo','ma','di','wo','do','vr','za'][d.getDay()];
+    var div=document.createElement('div');div.className='week-dot';
+    div.style.background=heeft?'#639922':'#F1EFE8';div.style.color=heeft?'#fff':'#B4B2A9';
+    div.textContent=dag;el.appendChild(div);
+  }
+}
+
+function updateHomepage(){
+  document.getElementById('streak-num').textContent=berekenStreak();
+  bouwWeekMini();
+  var vandaag=new Date().toISOString().split('T')[0];
+  var d=opgeslagen[vandaag]||{};
+  if(d.water){
+    var w=parseFloat(d.water);
+    document.getElementById('h-water').innerHTML=w.toFixed(2)+'<span class="k-unit">L</span>';
+    var pct=Math.min(100,Math.round(w/doelen.water*100));
+    document.getElementById('prog-water').style.width=pct+'%';
+    document.getElementById('h-water-sub').textContent=pct+'% van doel';
+  }
+  if(d.energie){document.getElementById('h-energie').innerHTML=d.energie.och+'<span class="k-unit">/10</span>';document.getElementById('h-energie-sub').textContent='Ochtend ingevuld';}
+  if(d.naarBed&&d.wakkerOm){document.getElementById('h-slaap').innerHTML='<span style="font-size:13px">'+d.naarBed+' → '+d.wakkerOm+'</span>';document.getElementById('h-slaap-sub').textContent='Slaaptijden ingevuld';}
+}
+
+async function laadHerstelAdvies(){
+  var el=document.getElementById('advies-tekst');
+  var gisteren=new Date();gisteren.setDate(gisteren.getDate()-1);
+  var g=opgeslagen[gisteren.toISOString().split('T')[0]];
+  if(!g){el.textContent='Vul data in om een hersteladvies te krijgen.';el.style.fontStyle='italic';el.style.color='#B4B2A9';return}
+  var ctx='Geef één kort concreet hersteladvies voor Gijs (16jr, turner+hardloper). Max 1 zin. Data gisteren: energie '+((g.energie&&g.energie.och)||'?')+'/10, water '+(g.water||'?')+'L, scherm uit '+(g.schermUit||'?')+', schermtijd '+(g.schermTotaal||'?')+'u, naar bed '+(g.naarBed||'?')+', wakker '+(g.wakkerOm||'?')+'.';
+  try{
+    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:ctx}],context:''})});
+    var d=await r.json();
+    el.textContent=d.antwoord||'Goed gedaan gisteren — focus vandaag op herstel.';
+    el.style.fontStyle='normal';el.style.color='#5F5E5A';
+  }catch(e){el.textContent='Consistent bijhouden geeft de beste inzichten.';el.style.fontStyle='normal';el.style.color='#5F5E5A';}
+}
+
+function slaanOp(){
+  var maaltijd=(document.querySelector('[onclick*="maaltijd"].geselecteerd')||{}).textContent||'';
+  var cat=(document.querySelector('[onclick*="categorie"].geselecteerd')||{}).textContent||'';
+  var grootte=(document.querySelector('[onclick*="grootte"].geselecteerd')||{}).textContent||'';
+  var tijd=document.getElementById('tijdstip').value;
+  var water=document.getElementById('water-slider').value;
+  var vandaag=new Date().toISOString().split('T')[0];
+  if(!opgeslagen[vandaag])opgeslagen[vandaag]={};
+  if(maaltijd&&tijd){
+    var key=maaltijd==='Ontbijt'?'ontbijt':maaltijd==='Lunch'?'lunch':'avond';
+    opgeslagen[vandaag][key]={tijd:tijd,cat:cat,grootte:grootte};
+    document.getElementById('lt-'+key).textContent=tijd;
+    document.getElementById('ld-'+key).className='dot dot-groen';
+    document.getElementById('ldet-'+key).textContent=(cat||'—')+(grootte?' · '+grootte.toLowerCase():'');
+  }
+  opgeslagen[vandaag].water=water;
+  opgeslagen[vandaag].energie={och:document.getElementById('e-och').value,mid:document.getElementById('e-mid').value,av:document.getElementById('e-av').value};
+  opgeslagen[vandaag].stemming={och:document.getElementById('s-och').value,mid:document.getElementById('s-mid').value,av:document.getElementById('s-av').value};
+  opgeslagen[vandaag].schermUit=document.getElementById('scherm-uit').value;
+  opgeslagen[vandaag].schermTotaal=document.getElementById('scherm-totaal').value;
+  opgeslagen[vandaag].laasteMaaltijd=document.getElementById('laatste-maaltijd').value;
+  opgeslagen[vandaag].naarBed=document.getElementById('naar-bed').value;
+  opgeslagen[vandaag].wakkerOm=document.getElementById('wakker-om').value;
+  localStorage.setItem('hm-data',JSON.stringify(opgeslagen));
+  updateHomepage();
+  var b=document.getElementById('success-banner');b.style.display='block';
+  setTimeout(function(){b.style.display='none';nav('home')},1200);
+}
+
+function bouwHeatmap(){
+  var el=document.getElementById('heatmap');if(!el)return;el.innerHTML='';
+  var tbl=document.createElement('table');tbl.style.cssText='width:100%;border-collapse:separate;border-spacing:3px';
+  var hdr=document.createElement('tr');var th0=document.createElement('th');
+  th0.style.cssText='font-size:10px;color:#888780;font-weight:400;text-align:left;padding:2px 4px;min-width:56px';hdr.appendChild(th0);
+  dagNamen.forEach(function(d){var th=document.createElement('th');th.style.cssText='font-size:10px;color:#888780;font-weight:400;text-align:center;padding:2px';th.textContent=d;hdr.appendChild(th)});
+  tbl.appendChild(hdr);
+  metingenNamen.forEach(function(m,mi){
+    var tr=document.createElement('tr');var td0=document.createElement('td');
+    td0.style.cssText='font-size:11px;color:#5F5E5A;padding:3px 4px;white-space:nowrap';td0.textContent=m;tr.appendChild(td0);
+    demoData[mi].forEach(function(v,di){
+      var td=document.createElement('td');
+      td.style.cssText='width:34px;height:30px;border-radius:5px;text-align:center;font-size:12px;font-weight:500;background:'+skl(v)+';color:'+tkl(v)+';cursor:pointer';
+      td.textContent=v;td.onclick=(function(mn,dg,sc,nt){return function(){openModal(mn,dg,sc,nt)}})(m,dagNamen[di],v,demoNotities[mi][di]);
+      tr.appendChild(td);
+    });tbl.appendChild(tr);
+  });
+  el.appendChild(tbl);
+  var leg=document.getElementById('legenda');if(leg)leg.innerHTML=kleuren.map(function(k){return'<div style="width:18px;height:18px;border-radius:3px;background:'+k+'"></div>'}).join('');
+}
+
+function openModal(meting,dag,score,notitie){
+  var el=document.getElementById('modal-inhoud');
+  el.innerHTML='<div class="modal-header"><div class="modal-titel">'+meting+' — '+dag+'</div><button class="modal-sluit" onclick="sluitModal()">×</button></div><div class="modal-rij"><span class="modal-key">Score</span><span class="modal-val"><span style="background:'+skl(score)+';color:'+tkl(score)+';padding:3px 12px;border-radius:20px;font-size:13px;">'+score+'/10</span></span></div><div class="modal-notitie">'+notitie+'</div><button class="modal-ai-btn" onclick="vanuitModal(\''+meting+'\',\''+dag+'\','+score+')">Vraag AI om analyse ↗</button>';
+  document.getElementById('modal-bg').classList.add('open');
+}
+function sluitModal(e){if(!e||e.target===document.getElementById('modal-bg'))document.getElementById('modal-bg').classList.remove('open')}
+function vanuitModal(m,d,s){sluitModal();var v='Mijn '+m.toLowerCase()+' op '+d+' was '+s+'/10. Wat kan dit verklaren?';if(!document.getElementById('chat-box').classList.contains('open'))toggleChat();setTimeout(function(){stelVraag(v)},200)}
+
+var inzichtenGeladen=false;
+async function laadInzichten(forceer){
+  if(inzichtenGeladen&&!forceer)return;
+  var el=document.getElementById('inzichten-inhoud');if(!el)return;
+  el.innerHTML='<div style="background:#EDE8E0;border-radius:10px;padding:12px;font-size:13px;color:#5F5E5A;text-align:center;font-style:italic">AI analyseert...</div>';
+  var ctx='Analyseer gezondheidsdata Gijs (16jr, turner+hardloper). 3 concrete inzichten, elk 1 zin, specifiek met cijfers.\n';
+  metingenNamen.forEach(function(n,i){ctx+=n+' (ma-zo): '+demoData[i].join(', ')+'\n'});
+  ctx+='Slaaptijden: '+demoNotities[0].join(' | ')+'\nVoeding: '+demoNotities[3].join(' | ')+'\nSchermtijd: '+demoNotities[5].join(' | ');
+  try{
+    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:ctx+'\n\nJSON array: ["inzicht1","inzicht2","inzicht3"]. Alleen JSON.'}],context:''})});
+    var d=await r.json();var tekst=d.antwoord||'[]';
+    var ins=JSON.parse(tekst.replace(/```json|```/g,'').trim());
+    var ic=['📊','💡','⚠️'],bg=['#EAF3DE','#EDE8E0','#FEF3E2'],tc=['#3B6D11','#5F5E5A','#7A4A00'];
+    el.innerHTML=ins.map(function(t,i){return'<div style="background:'+bg[i%3]+';border-radius:10px;padding:12px 14px;font-size:13px;color:'+tc[i%3]+';line-height:1.5">'+ic[i%3]+' '+t+'</div>'}).join('');
+    inzichtenGeladen=true;
+  }catch(e){el.innerHTML='<div style="background:#F7F3EE;border-radius:10px;padding:12px;font-size:13px;color:#888780;text-align:center">AI beschikbaar na koppelen via Vercel.</div>'}
+}
+
+function bouwGeschiedenis(){
+  var el=document.getElementById('gesch-lijst');
+  var keys=Object.keys(opgeslagen).sort().reverse();
+  if(keys.length===0){el.innerHTML='<div style="background:#EDE8E0;border-radius:12px;padding:14px;font-size:13px;color:#5F5E5A;text-align:center">Nog geen data — begin met invullen!</div>';return}
+  el.innerHTML='';
+  var dgN=['zo','ma','di','wo','do','vr','za'],maandN=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+  keys.forEach(function(datum){
+    var d=opgeslagen[datum],div=document.createElement('div');div.className='gesch-dag';
+    var dt=new Date(datum);
+    div.innerHTML='<div class="gesch-datum">'+dgN[dt.getDay()]+' '+dt.getDate()+' '+maandN[dt.getMonth()]+'</div><div class="gesch-grid">'+(d.naarBed?'<div class="gesch-item">Naar bed <span>'+d.naarBed+'</span></div>':'')+(d.wakkerOm?'<div class="gesch-item">Wakker <span>'+d.wakkerOm+'</span></div>':'')+(d.energie?'<div class="gesch-item">Energie <span>'+d.energie.och+'/10</span></div>':'')+(d.stemming?'<div class="gesch-item">Stemming <span>'+d.stemming.och+'/10</span></div>':'')+(d.water?'<div class="gesch-item">Water <span>'+parseFloat(d.water).toFixed(2)+'L</span></div>':'')+(d.schermTotaal?'<div class="gesch-item">Scherm <span>'+d.schermTotaal+'u</span></div>':'')+(d.laasteMaaltijd?'<div class="gesch-item">Laatste maaltijd <span>'+d.laasteMaaltijd+'</span></div>':'')+(d.schermUit?'<div class="gesch-item">Scherm uit <span>'+d.schermUit+'</span></div>':'')+'</div>';
+    el.appendChild(div);
+  });
+}
+
+function nav(p){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('actief')});
+  document.getElementById('s-'+p).classList.add('actief');
+  ['home','invoer','patronen','geschiedenis','profiel'].forEach(function(n){var nl=document.getElementById('nl-'+n);if(nl){nl.classList.remove('actief');if(n===p)nl.classList.add('actief')}});
+  if(p==='patronen'){bouwHeatmap();laadInzichten(false)}
+  if(p==='geschiedenis')bouwGeschiedenis();
+  if(p==='home')updateHomepage();
+  window.scrollTo(0,0);
+}
+
+function snackAantal(d){snacks=Math.max(0,Math.min(10,snacks+d));document.getElementById('snack-aantal').textContent=snacks}
+function kiesChip(el,g){el.closest('.chip-row').querySelectorAll('.chip').forEach(function(c){c.classList.remove('geselecteerd')});el.classList.add('geselecteerd')}
+function toggleChat(){document.getElementById('chat-box').classList.toggle('open')}
+
+var hist=[];
+function voegMsg(txt,type){var d=document.getElementById('chat-msgs');var b=document.createElement('div');b.className='msg '+type;b.textContent=txt;d.appendChild(b);d.scrollTop=d.scrollHeight;return b}
+async function verstuur(){var i=document.getElementById('chat-input');var v=i.value.trim();if(!v)return;stelVraag(v);i.value=''}
+async function stelVraag(v){
+  voegMsg(v,'user');var l=voegMsg('...','laden');hist.push({role:'user',content:v});
+  var ctx='Data Gijs (16jr, turner+hardloper). ';metingenNamen.forEach(function(n,i){ctx+=n+': '+demoData[i].join(',')+'. '});
+  try{
+    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist,context:ctx})});
+    var d=await r.json();l.remove();voegMsg(d.antwoord||'Geen antwoord.','ai');hist.push({role:'assistant',content:d.antwoord});
+  }catch(e){l.remove();voegMsg('AI beschikbaar na koppelen via Vercel.','ai')}
+}
+
+var nu=new Date();
+var hh=String(nu.getHours()).padStart(2,'0'),mm=String(nu.getMinutes()).padStart(2,'0');
+['tijdstip','laatste-maaltijd','scherm-uit','wakker-om'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=hh+':'+mm});
+document.getElementById('naar-bed').value='22:30';
+var uur=nu.getHours();
+document.getElementById('begroeting').textContent=(uur<12?'Goedemorgen':uur<18?'Goedemiddag':'Goedenavond')+', Gijs';
+var dgN2=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+var maandN2=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+document.getElementById('datum-badge').textContent=dgN2[nu.getDay()]+' '+nu.getDate()+' '+maandN2[nu.getMonth()];
+laadDoelen();updateHomepage();laadHerstelAdvies();
+if(notifAan)agendeerNotif();
+</script>
+</body>
+</html>
