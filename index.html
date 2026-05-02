@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Healthmaxxer</title>
+<title>Healtmaxxer</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#F7F3EE;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;justify-content:center}
@@ -523,7 +523,7 @@ function nav(p){
 }
 
 function snackAantal(d){snacks=Math.max(0,Math.min(10,snacks+d));document.getElementById('snack-aantal').textContent=snacks}
-function kiesChip(el,g){el.closest('.chip-row').querySelectorAll('.chip').forEach(function(c){c.classList.remove('geselecteerd')});el.classList.add('geselecteerd')}
+function kiesChip(el,g){el.closest('.chip-row').querySelectorAll('.chip').forEach(function(c){c.classList.remove('geselecteerd')});el.classList.add('geselecteerd');if(g==='maaltijd'){document.querySelectorAll('[onclick*="categorie"]').forEach(function(c){c.classList.remove('geselecteerd')});document.querySelectorAll('[onclick*="grootte"]').forEach(function(c){c.classList.remove('geselecteerd')});document.getElementById('voeding-omschrijving').value='';var nu=new Date();document.getElementById('tijdstip').value=String(nu.getHours()).padStart(2,'0')+':'+String(nu.getMinutes()).padStart(2,'0');}}
 function toggleChat(){document.getElementById('chat-box').classList.toggle('open')}
 
 var hist=[];
